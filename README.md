@@ -109,25 +109,26 @@ This is the **key innovation** of the project.
 ---
 
 ## 📁 Project Structure
-
 campus-connect/
 │
-├── frontend/ # Frontend (React + Vite)
-│ ├── src/
-│ ├── public/
-│ ├── package.json
-│ └── README.md
+├── client/ # Frontend
+│   ├── src/
+│   ├── public/
+│   ├── package.json
+│   └── vite.config.ts
 │
-├── backend/ # Backend (Node + Express)
-│ ├── models/
-│ ├── routes/
-│ ├── controllers/
-│ ├── middleware/
-│ ├── config/
-│ ├── index.js
-│ └── package.json
+├── server/ # Backend
+│   ├── controllers/
+│   ├── models/
+│   ├── routes/
+│   ├── middleware/
+│   ├── config/
+│   ├── index.js
+│   └── package.json
 │
-└── README.md # Root documentation
+├── .gitignore
+└── README.md
+
 
 
 ---
