@@ -1,105 +1,127 @@
 /**
- * Club Routes
+ * Student Routes
  * 
- * Routes for club-specific functionality:
- * - Club profile management
- * - Event posting
- * - Follower management
+ * Routes for student-specific functionality:
+ * - Timetable management
+ * - Friends and friend requests
+ * - Groups and messaging
  */
 
 const express = require('express');
 const router = express.Router();
-const clubController = require('../controllers/club.controller');
-const { authenticate, isClub, isStudent, optionalAuth } = require('../middleware/auth.middleware');
-const { eventValidation, mongoIdValidation } = require('../middleware/validation.middleware');
+const studentController = require('../controllers/student.controller');
+const { authenticate, isStudent } = require('../middleware/auth.middleware');
+const { 
+  timetableValidation, 
+  createGroupValidation, 
+  messageValidation,
+  mongoIdValidation 
+} = require('../middleware/validation.middleware');
+
+// All routes require authentication and student role
+router.use(authenticate, isStudent);
 
 // =============================================================================
-// PUBLIC ROUTES
-// =============================================================================
-
-/**
- * @route   GET /api/club/all
- * @desc    Get all clubs
- * @access  Public (with optional auth to show follow status)
- */
-router.get('/all', optionalAuth, clubController.getAllClubs);
-
-/**
- * @route   GET /api/club/events/upcoming
- * @desc    Get upcoming events
- * @access  Public (with optional auth for followed clubs filter)
- */
-router.get('/events/upcoming', optionalAuth, clubController.getUpcomingEvents);
-
-// =============================================================================
-// STUDENT ROUTES (for following clubs)
+// TIMETABLE ROUTES
 // =============================================================================
 
 /**
- * @route   POST /api/club/:clubId/follow
- * @desc    Follow a club
+ * @route   GET /api/student/timetable
+ * @desc    Get student's timetable
  * @access  Private (Student)
  */
-router.post('/:clubId/follow', authenticate, isStudent, mongoIdValidation('clubId'), clubController.followClub);
+router.get('/timetable', studentController.getTimetable);
 
 /**
- * @route   POST /api/club/:clubId/unfollow
- * @desc    Unfollow a club
+ * @route   POST /api/student/timetable
+ * @desc    Create or update timetable
  * @access  Private (Student)
  */
-router.post('/:clubId/unfollow', authenticate, isStudent, mongoIdValidation('clubId'), clubController.unfollowClub);
+router.post('/timetable', timetableValidation, studentController.updateTimetable);
 
 // =============================================================================
-// CLUB MANAGEMENT ROUTES (Club role only)
+// FRIENDS ROUTES
 // =============================================================================
 
 /**
- * @route   GET /api/club/profile
- * @desc    Get club's own profile
- * @access  Private (Club)
+ * @route   GET /api/student/friends
+ * @desc    Get list of friends with current status
+ * @access  Private (Student)
  */
-router.get('/profile', authenticate, isClub, clubController.getProfile);
+router.get('/friends', studentController.getFriends);
 
 /**
- * @route   PUT /api/club/profile
- * @desc    Update club's profile
- * @access  Private (Club)
+ * @route   GET /api/student/friends/requests
+ * @desc    Get pending friend requests (sent and received)
+ * @access  Private (Student)
  */
-router.put('/profile', authenticate, isClub, clubController.updateProfile);
+router.get('/friends/requests', studentController.getPendingRequests);
 
 /**
- * @route   GET /api/club/events
- * @desc    Get club's events
- * @access  Private (Club)
+ * @route   POST /api/student/friends/request/:userId
+ * @desc    Send friend request to a user
+ * @access  Private (Student)
  */
-router.get('/events', authenticate, isClub, clubController.getClubEvents);
+router.post('/friends/request/:userId', mongoIdValidation('userId'), studentController.sendFriendRequest);
 
 /**
- * @route   POST /api/club/events
- * @desc    Create a new event
- * @access  Private (Club)
+ * @route   POST /api/student/friends/accept/:requestId
+ * @desc    Accept a friend request
+ * @access  Private (Student)
  */
-router.post('/events', authenticate, isClub, eventValidation, clubController.createEvent);
+router.post('/friends/accept/:requestId', mongoIdValidation('requestId'), studentController.acceptFriendRequest);
 
 /**
- * @route   PUT /api/club/events/:eventId
- * @desc    Update an event
- * @access  Private (Club)
+ * @route   POST /api/student/friends/reject/:requestId
+ * @desc    Reject a friend request
+ * @access  Private (Student)
  */
-router.put('/events/:eventId', authenticate, isClub, mongoIdValidation('eventId'), clubController.updateEvent);
+router.post('/friends/reject/:requestId', mongoIdValidation('requestId'), studentController.rejectFriendRequest);
 
 /**
- * @route   DELETE /api/club/events/:eventId
- * @desc    Delete an event
- * @access  Private (Club)
+ * @route   GET /api/student/friends/:userId/availability
+ * @desc    Get friend's availability based on their timetable
+ * @access  Private (Student)
  */
-router.delete('/events/:eventId', authenticate, isClub, mongoIdValidation('eventId'), clubController.deleteEvent);
+router.get('/friends/:userId/availability', mongoIdValidation('userId'), studentController.getFriendAvailability);
+
+// =============================================================================
+// GROUPS ROUTES
+// =============================================================================
 
 /**
- * @route   GET /api/club/followers
- * @desc    Get club's followers
- * @access  Private (Club)
+ * @route   GET /api/student/groups
+ * @desc    Get all groups the student is a member of
+ * @access  Private (Student)
  */
-router.get('/followers', authenticate, isClub, clubController.getFollowers);
+router.get('/groups', studentController.getGroups);
+
+/**
+ * @route   POST /api/student/groups
+ * @desc    Create a new group
+ * @access  Private (Student)
+ */
+router.post('/groups', createGroupValidation, studentController.createGroup);
+
+/**
+ * @route   POST /api/student/groups/:groupId/members
+ * @desc    Add a member to a group
+ * @access  Private (Student, group member)
+ */
+router.post('/groups/:groupId/members', mongoIdValidation('groupId'), studentController.addGroupMember);
+
+/**
+ * @route   GET /api/student/groups/:groupId/messages
+ * @desc    Get messages for a group
+ * @access  Private (Student, group member)
+ */
+router.get('/groups/:groupId/messages', mongoIdValidation('groupId'), studentController.getGroupMessages);
+
+/**
+ * @route   POST /api/student/groups/:groupId/messages
+ * @desc    Send a message to a group
+ * @access  Private (Student, group member)
+ */
+router.post('/groups/:groupId/messages', mongoIdValidation('groupId'), messageValidation, studentController.sendGroupMessage);
 
 module.exports = router;
