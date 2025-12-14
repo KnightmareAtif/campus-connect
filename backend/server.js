@@ -1,5 +1,5 @@
 /**
- * Campus Hub API - Main Server Entry Point
+ * Campus Connect API - Main Server Entry Point
  * 
  * This is the main entry point for the Express.js application.
  * It sets up middleware, connects to MongoDB, and registers all routes.
@@ -99,4 +99,5 @@ connectDB().then(() => {
     console.log(`🚀 Server running on port ${PORT}`);
     console.log(`📍 Environment: ${process.env.NODE_ENV || 'development'}`);
   });
+
 });
