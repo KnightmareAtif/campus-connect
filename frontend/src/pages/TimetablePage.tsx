@@ -1,24 +1,93 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { DashboardLayout } from '@/components/layouts/DashboardLayout';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { Label } from '@/components/ui/label';
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 import { useToast } from '@/hooks/use-toast';
-import { studentTimetable, periodTimes, TimeSlot } from '@/data/mockData';
+import { studentTimetable, TimeSlot } from '@/data/mockData';
 import { cn } from '@/lib/utils';
 import { motion } from 'framer-motion';
-import { Save, Edit3, X } from 'lucide-react';
+import { Save, Edit3, X, Settings, Plus, Minus, Clock } from 'lucide-react';
 
 const days = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday'] as const;
-const periods = [1, 2, 3, 4, 5];
+
+interface PeriodTime {
+  start: string;
+  end: string;
+}
+
+const defaultPeriodTimes: PeriodTime[] = [
+  { start: '08:00', end: '09:00' },
+  { start: '09:00', end: '10:00' },
+  { start: '10:30', end: '11:30' },
+  { start: '11:30', end: '12:30' },
+  { start: '14:00', end: '15:00' },
+];
+
+const formatTime = (time: string) => {
+  const [hours, minutes] = time.split(':');
+  const hour = parseInt(hours);
+  const ampm = hour >= 12 ? 'PM' : 'AM';
+  const displayHour = hour % 12 || 12;
+  return `${displayHour}:${minutes} ${ampm}`;
+};
 
 const TimetablePage = () => {
+  const [periodCount, setPeriodCount] = useState(5);
+  const [periodTimes, setPeriodTimes] = useState<PeriodTime[]>(defaultPeriodTimes);
   const [timetable, setTimetable] = useState<TimeSlot[]>(studentTimetable);
   const [isEditing, setIsEditing] = useState(false);
   const [editingSlot, setEditingSlot] = useState<string | null>(null);
   const [editSubject, setEditSubject] = useState('');
+  const [editVenue, setEditVenue] = useState('');
+  const [isSettingsOpen, setIsSettingsOpen] = useState(false);
   const { toast } = useToast();
+
+  // Generate timetable slots when period count changes
+  useEffect(() => {
+    const existingSlots = new Map(timetable.map(slot => [`${slot.day}-${slot.period}`, slot]));
+    const newTimetable: TimeSlot[] = [];
+    let idCounter = 100;
+
+    days.forEach(day => {
+      for (let period = 1; period <= periodCount; period++) {
+        const key = `${day}-${period}`;
+        const existing = existingSlots.get(key);
+        if (existing) {
+          newTimetable.push(existing);
+        } else {
+          newTimetable.push({
+            id: `new-${idCounter++}`,
+            day,
+            period,
+            subject: null,
+          });
+        }
+      }
+    });
+
+    setTimetable(newTimetable);
+  }, [periodCount]);
+
+  // Ensure periodTimes array matches periodCount
+  useEffect(() => {
+    if (periodTimes.length < periodCount) {
+      const newTimes = [...periodTimes];
+      for (let i = periodTimes.length; i < periodCount; i++) {
+        const lastEnd = newTimes[i - 1]?.end || '08:00';
+        const [hours, mins] = lastEnd.split(':').map(Number);
+        const newStart = `${String(hours).padStart(2, '0')}:${String(mins).padStart(2, '0')}`;
+        const endHour = hours + 1;
+        const newEnd = `${String(endHour).padStart(2, '0')}:${String(mins).padStart(2, '0')}`;
+        newTimes.push({ start: newStart, end: newEnd });
+      }
+      setPeriodTimes(newTimes);
+    } else if (periodTimes.length > periodCount) {
+      setPeriodTimes(periodTimes.slice(0, periodCount));
+    }
+  }, [periodCount, periodTimes.length]);
 
   const getSlot = (day: typeof days[number], period: number) => {
     return timetable.find(slot => slot.day === day && slot.period === period);
@@ -27,23 +96,26 @@ const TimetablePage = () => {
   const handleEditSlot = (slot: TimeSlot) => {
     setEditingSlot(slot.id);
     setEditSubject(slot.subject || '');
+    setEditVenue(slot.room || '');
   };
 
   const handleSaveSlot = (slotId: string) => {
     setTimetable(prev =>
       prev.map(slot =>
         slot.id === slotId
-          ? { ...slot, subject: editSubject || null }
+          ? { ...slot, subject: editSubject || null, room: editVenue || undefined }
           : slot
       )
     );
     setEditingSlot(null);
     setEditSubject('');
+    setEditVenue('');
   };
 
   const handleCancelEdit = () => {
     setEditingSlot(null);
     setEditSubject('');
+    setEditVenue('');
   };
 
   const handleSaveTimetable = () => {
@@ -53,6 +125,28 @@ const TimetablePage = () => {
       description: 'Your changes have been saved successfully.',
     });
   };
+
+  const handlePeriodTimeChange = (index: number, field: 'start' | 'end', value: string) => {
+    setPeriodTimes(prev => {
+      const newTimes = [...prev];
+      newTimes[index] = { ...newTimes[index], [field]: value };
+      return newTimes;
+    });
+  };
+
+  const handleAddPeriod = () => {
+    if (periodCount < 10) {
+      setPeriodCount(prev => prev + 1);
+    }
+  };
+
+  const handleRemovePeriod = () => {
+    if (periodCount > 1) {
+      setPeriodCount(prev => prev - 1);
+    }
+  };
+
+  const periods = Array.from({ length: periodCount }, (_, i) => i + 1);
 
   return (
     <DashboardLayout>
@@ -67,6 +161,78 @@ const TimetablePage = () => {
             <p className="mt-1 text-muted-foreground">View and manage your weekly schedule</p>
           </div>
           <div className="flex gap-2">
+            {/* Settings Button */}
+            <Dialog open={isSettingsOpen} onOpenChange={setIsSettingsOpen}>
+              <DialogTrigger asChild>
+                <Button variant="outline">
+                  <Settings className="mr-2 h-4 w-4" />
+                  Settings
+                </Button>
+              </DialogTrigger>
+              <DialogContent className="max-w-md">
+                <DialogHeader>
+                  <DialogTitle>Timetable Settings</DialogTitle>
+                </DialogHeader>
+                <div className="space-y-6 pt-4">
+                  {/* Period Count */}
+                  <div className="space-y-3">
+                    <Label className="text-base font-medium">Number of Periods</Label>
+                    <div className="flex items-center gap-4">
+                      <Button
+                        variant="outline"
+                        size="icon"
+                        onClick={handleRemovePeriod}
+                        disabled={periodCount <= 1}
+                      >
+                        <Minus className="h-4 w-4" />
+                      </Button>
+                      <span className="w-12 text-center text-2xl font-bold">{periodCount}</span>
+                      <Button
+                        variant="outline"
+                        size="icon"
+                        onClick={handleAddPeriod}
+                        disabled={periodCount >= 10}
+                      >
+                        <Plus className="h-4 w-4" />
+                      </Button>
+                    </div>
+                    <p className="text-sm text-muted-foreground">Min: 1, Max: 10 periods per day</p>
+                  </div>
+
+                  {/* Period Timings */}
+                  <div className="space-y-3">
+                    <Label className="text-base font-medium">Period Timings</Label>
+                    <div className="max-h-64 space-y-3 overflow-y-auto pr-2">
+                      {periods.map((period, index) => (
+                        <div key={period} className="flex items-center gap-2 rounded-lg border border-border p-3">
+                          <span className="w-16 text-sm font-medium text-muted-foreground">Period {period}</span>
+                          <div className="flex flex-1 items-center gap-2">
+                            <Input
+                              type="time"
+                              value={periodTimes[index]?.start || '08:00'}
+                              onChange={(e) => handlePeriodTimeChange(index, 'start', e.target.value)}
+                              className="h-9"
+                            />
+                            <span className="text-muted-foreground">to</span>
+                            <Input
+                              type="time"
+                              value={periodTimes[index]?.end || '09:00'}
+                              onChange={(e) => handlePeriodTimeChange(index, 'end', e.target.value)}
+                              className="h-9"
+                            />
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+
+                  <Button className="w-full" onClick={() => setIsSettingsOpen(false)}>
+                    Done
+                  </Button>
+                </div>
+              </DialogContent>
+            </Dialog>
+
             {isEditing ? (
               <>
                 <Button variant="outline" onClick={() => setIsEditing(false)}>
@@ -107,7 +273,12 @@ const TimetablePage = () => {
                     <tr key={period} className="border-b border-border last:border-0">
                       <td className="p-4 text-sm text-muted-foreground">
                         <div className="font-medium">Period {period}</div>
-                        <div className="text-xs">{periodTimes[period - 1]}</div>
+                        <div className="text-xs">
+                          {periodTimes[period - 1] 
+                            ? `${formatTime(periodTimes[period - 1].start)} - ${formatTime(periodTimes[period - 1].end)}`
+                            : '-'
+                          }
+                        </div>
                       </td>
                       {days.map(day => {
                         const slot = getSlot(day, period);
@@ -121,7 +292,13 @@ const TimetablePage = () => {
                                 <Input
                                   value={editSubject}
                                   onChange={(e) => setEditSubject(e.target.value)}
-                                  placeholder="Subject name (empty = free)"
+                                  placeholder="Subject (empty = free)"
+                                  className="h-8 text-sm"
+                                />
+                                <Input
+                                  value={editVenue}
+                                  onChange={(e) => setEditVenue(e.target.value)}
+                                  placeholder="Venue / Room"
                                   className="h-8 text-sm"
                                 />
                                 <div className="flex gap-1">
@@ -158,7 +335,7 @@ const TimetablePage = () => {
                                 ) : (
                                   <>
                                     <p className="font-medium text-foreground">{slot?.subject}</p>
-                                    <p className="mt-1 text-xs text-muted-foreground">{slot?.room}</p>
+                                    {slot?.room && <p className="mt-1 text-xs text-muted-foreground">{slot.room}</p>}
                                   </>
                                 )}
                               </div>
@@ -185,22 +362,65 @@ const TimetablePage = () => {
                 {periods.map(period => {
                   const slot = getSlot(day, period);
                   const isFree = !slot?.subject;
+                  const isCurrentlyEditing = editingSlot === slot?.id;
 
                   return (
-                    <div
-                      key={period}
-                      className={cn(
-                        'flex items-center justify-between rounded-lg p-3',
-                        isFree ? 'bg-status-free/10' : 'bg-info/10'
+                    <div key={period}>
+                      {isCurrentlyEditing ? (
+                        <div className="flex flex-col gap-2 rounded-lg border border-primary bg-card p-3">
+                          <Input
+                            value={editSubject}
+                            onChange={(e) => setEditSubject(e.target.value)}
+                            placeholder="Subject (empty = free)"
+                            className="h-8 text-sm"
+                          />
+                          <Input
+                            value={editVenue}
+                            onChange={(e) => setEditVenue(e.target.value)}
+                            placeholder="Venue / Room"
+                            className="h-8 text-sm"
+                          />
+                          <div className="flex gap-1">
+                            <Button
+                              size="sm"
+                              className="h-7 flex-1 text-xs"
+                              onClick={() => handleSaveSlot(slot!.id)}
+                            >
+                              Save
+                            </Button>
+                            <Button
+                              size="sm"
+                              variant="outline"
+                              className="h-7 flex-1 text-xs"
+                              onClick={handleCancelEdit}
+                            >
+                              Cancel
+                            </Button>
+                          </div>
+                        </div>
+                      ) : (
+                        <div
+                          className={cn(
+                            'flex items-center justify-between rounded-lg p-3',
+                            isFree ? 'bg-status-free/10' : 'bg-info/10',
+                            isEditing && 'cursor-pointer hover:ring-2 hover:ring-primary'
+                          )}
+                          onClick={() => isEditing && slot && handleEditSlot(slot)}
+                        >
+                          <div>
+                            <p className="text-xs text-muted-foreground">
+                              {periodTimes[period - 1]
+                                ? `${formatTime(periodTimes[period - 1].start)} - ${formatTime(periodTimes[period - 1].end)}`
+                                : `Period ${period}`
+                              }
+                            </p>
+                            <p className={cn('font-medium', isFree ? 'text-status-free' : 'text-foreground')}>
+                              {isFree ? 'Free' : slot?.subject}
+                            </p>
+                            {slot?.room && <p className="text-xs text-muted-foreground">{slot.room}</p>}
+                          </div>
+                        </div>
                       )}
-                    >
-                      <div>
-                        <p className="text-xs text-muted-foreground">{periodTimes[period - 1]}</p>
-                        <p className={cn('font-medium', isFree ? 'text-status-free' : 'text-foreground')}>
-                          {isFree ? 'Free' : slot?.subject}
-                        </p>
-                        {slot?.room && <p className="text-xs text-muted-foreground">{slot.room}</p>}
-                      </div>
                     </div>
                   );
                 })}
