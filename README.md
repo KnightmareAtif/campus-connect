@@ -108,31 +108,6 @@ This is the **key innovation** of the project.
 
 ---
 
-## 📁 Project Structure
-campus-connect/
-│
-├── client/ # Frontend
-│   ├── src/
-│   ├── public/
-│   ├── package.json
-│   └── vite.config.ts
-│
-├── server/ # Backend
-│   ├── controllers/
-│   ├── models/
-│   ├── routes/
-│   ├── middleware/
-│   ├── config/
-│   ├── index.js
-│   └── package.json
-│
-├── .gitignore
-└── README.md
-
-
-
----
-
 ## 🔐 Authentication & Authorization
 
 - JWT-based authentication
@@ -157,7 +132,7 @@ campus-connect/
 MONGO_URI=mongodb+srv://<username>:<password>@cluster.mongodb.net/campusconnect
 JWT_SECRET=your_secret_key
 PORT=5000
-
+```
 
 ## ▶️ Running the Project Locally
 
@@ -166,7 +141,7 @@ PORT=5000
 cd frontend
 npm install
 npm run dev
-
+```
 
 
 ### Backend
@@ -174,3 +149,4 @@ npm run dev
 cd backend
 npm install
 npm start
+```
