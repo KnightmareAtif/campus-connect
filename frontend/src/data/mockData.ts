@@ -7,6 +7,7 @@ export interface TimeSlot {
   subject: string | null;
   room?: string;
   teacher?: string;
+  teacherId?: string;
 }
 
 export interface Friend {
@@ -17,6 +18,8 @@ export interface Friend {
   currentActivity?: string;
   freePeriodsToday: number[];
   nextFreeTime?: string;
+  phone?: string;
+  email?: string;
 }
 
 export interface Group {
@@ -63,6 +66,16 @@ export interface Club {
   category: string;
 }
 
+export interface EventRegistration {
+  id: string;
+  eventId: string;
+  studentId: string;
+  studentName: string;
+  studentEmail: string;
+  studentAvatar: string;
+  registeredAt: Date;
+}
+
 export interface Event {
   id: string;
   clubId: string;
@@ -73,6 +86,25 @@ export interface Event {
   time: string;
   venue: string;
   isFollowedClub: boolean;
+  registeredStudents?: EventRegistration[];
+  isRegistered?: boolean;
+}
+
+export interface EnrolledStudent {
+  id: string;
+  name: string;
+  email: string;
+  phone: string;
+  avatar: string;
+  timetable: TimeSlot[];
+}
+
+export interface TeacherClass {
+  subject: string;
+  day: string;
+  period: number;
+  room: string;
+  students: EnrolledStudent[];
 }
 
 export interface AdminUser {
@@ -87,40 +119,40 @@ export interface AdminUser {
 
 // Student Timetable
 export const studentTimetable: TimeSlot[] = [
-  { id: '1', day: 'Monday', period: 1, subject: 'Mathematics', room: 'Room 101', teacher: 'Dr. Smith' },
-  { id: '2', day: 'Monday', period: 2, subject: 'Physics', room: 'Lab 1', teacher: 'Prof. Johnson' },
+  { id: '1', day: 'Monday', period: 1, subject: 'Mathematics', room: 'Room 101', teacher: 'Dr. Smith', teacherId: '1' },
+  { id: '2', day: 'Monday', period: 2, subject: 'Physics', room: 'Lab 1', teacher: 'Prof. Johnson', teacherId: '2' },
   { id: '3', day: 'Monday', period: 3, subject: null },
-  { id: '4', day: 'Monday', period: 4, subject: 'Computer Science', room: 'Room 205', teacher: 'Dr. Miller' },
+  { id: '4', day: 'Monday', period: 4, subject: 'Computer Science', room: 'Room 205', teacher: 'Dr. Miller', teacherId: '3' },
   { id: '5', day: 'Monday', period: 5, subject: null },
   { id: '6', day: 'Tuesday', period: 1, subject: null },
-  { id: '7', day: 'Tuesday', period: 2, subject: 'Chemistry', room: 'Lab 2', teacher: 'Dr. Wilson' },
-  { id: '8', day: 'Tuesday', period: 3, subject: 'English', room: 'Room 102', teacher: 'Ms. Davis' },
+  { id: '7', day: 'Tuesday', period: 2, subject: 'Chemistry', room: 'Lab 2', teacher: 'Dr. Wilson', teacherId: '4' },
+  { id: '8', day: 'Tuesday', period: 3, subject: 'English', room: 'Room 102', teacher: 'Ms. Davis', teacherId: '5' },
   { id: '9', day: 'Tuesday', period: 4, subject: null },
-  { id: '10', day: 'Tuesday', period: 5, subject: 'Mathematics', room: 'Room 101', teacher: 'Dr. Smith' },
-  { id: '11', day: 'Wednesday', period: 1, subject: 'Physics', room: 'Lab 1', teacher: 'Prof. Johnson' },
+  { id: '10', day: 'Tuesday', period: 5, subject: 'Mathematics', room: 'Room 101', teacher: 'Dr. Smith', teacherId: '1' },
+  { id: '11', day: 'Wednesday', period: 1, subject: 'Physics', room: 'Lab 1', teacher: 'Prof. Johnson', teacherId: '2' },
   { id: '12', day: 'Wednesday', period: 2, subject: null },
-  { id: '13', day: 'Wednesday', period: 3, subject: 'Computer Science', room: 'Room 205', teacher: 'Dr. Miller' },
-  { id: '14', day: 'Wednesday', period: 4, subject: 'Chemistry', room: 'Lab 2', teacher: 'Dr. Wilson' },
+  { id: '13', day: 'Wednesday', period: 3, subject: 'Computer Science', room: 'Room 205', teacher: 'Dr. Miller', teacherId: '3' },
+  { id: '14', day: 'Wednesday', period: 4, subject: 'Chemistry', room: 'Lab 2', teacher: 'Dr. Wilson', teacherId: '4' },
   { id: '15', day: 'Wednesday', period: 5, subject: null },
-  { id: '16', day: 'Thursday', period: 1, subject: 'English', room: 'Room 102', teacher: 'Ms. Davis' },
-  { id: '17', day: 'Thursday', period: 2, subject: 'Mathematics', room: 'Room 101', teacher: 'Dr. Smith' },
+  { id: '16', day: 'Thursday', period: 1, subject: 'English', room: 'Room 102', teacher: 'Ms. Davis', teacherId: '5' },
+  { id: '17', day: 'Thursday', period: 2, subject: 'Mathematics', room: 'Room 101', teacher: 'Dr. Smith', teacherId: '1' },
   { id: '18', day: 'Thursday', period: 3, subject: null },
   { id: '19', day: 'Thursday', period: 4, subject: null },
-  { id: '20', day: 'Thursday', period: 5, subject: 'Physics', room: 'Lab 1', teacher: 'Prof. Johnson' },
+  { id: '20', day: 'Thursday', period: 5, subject: 'Physics', room: 'Lab 1', teacher: 'Prof. Johnson', teacherId: '2' },
   { id: '21', day: 'Friday', period: 1, subject: null },
-  { id: '22', day: 'Friday', period: 2, subject: 'Computer Science', room: 'Room 205', teacher: 'Dr. Miller' },
-  { id: '23', day: 'Friday', period: 3, subject: 'Chemistry', room: 'Lab 2', teacher: 'Dr. Wilson' },
-  { id: '24', day: 'Friday', period: 4, subject: 'English', room: 'Room 102', teacher: 'Ms. Davis' },
+  { id: '22', day: 'Friday', period: 2, subject: 'Computer Science', room: 'Room 205', teacher: 'Dr. Miller', teacherId: '3' },
+  { id: '23', day: 'Friday', period: 3, subject: 'Chemistry', room: 'Lab 2', teacher: 'Dr. Wilson', teacherId: '4' },
+  { id: '24', day: 'Friday', period: 4, subject: 'English', room: 'Room 102', teacher: 'Ms. Davis', teacherId: '5' },
   { id: '25', day: 'Friday', period: 5, subject: null },
 ];
 
 export const friends: Friend[] = [
-  { id: '1', name: 'Emma Wilson', avatar: 'https://api.dicebear.com/7.x/avataaars/svg?seed=Emma', status: 'free', currentActivity: 'Library', freePeriodsToday: [3, 5], nextFreeTime: 'Now' },
-  { id: '2', name: 'James Brown', avatar: 'https://api.dicebear.com/7.x/avataaars/svg?seed=James', status: 'busy', currentActivity: 'Chemistry Lab', freePeriodsToday: [4, 5], nextFreeTime: '2:00 PM' },
-  { id: '3', name: 'Sophie Chen', avatar: 'https://api.dicebear.com/7.x/avataaars/svg?seed=Sophie', status: 'free', currentActivity: 'Cafeteria', freePeriodsToday: [1, 3, 5], nextFreeTime: 'Now' },
-  { id: '4', name: 'Michael Lee', avatar: 'https://api.dicebear.com/7.x/avataaars/svg?seed=Michael', status: 'offline', freePeriodsToday: [2, 4], nextFreeTime: 'Tomorrow' },
-  { id: '5', name: 'Olivia Taylor', avatar: 'https://api.dicebear.com/7.x/avataaars/svg?seed=Olivia', status: 'busy', currentActivity: 'Math Class', freePeriodsToday: [5], nextFreeTime: '3:00 PM' },
-  { id: '6', name: 'Daniel Kim', avatar: 'https://api.dicebear.com/7.x/avataaars/svg?seed=Daniel', status: 'free', currentActivity: 'Student Center', freePeriodsToday: [1, 2, 5], nextFreeTime: 'Now' },
+  { id: '1', name: 'Emma Wilson', avatar: 'https://api.dicebear.com/7.x/avataaars/svg?seed=Emma', status: 'free', currentActivity: 'Library', freePeriodsToday: [3, 5], nextFreeTime: 'Now', phone: '+1 (555) 111-2222', email: 'emma.w@campus.edu' },
+  { id: '2', name: 'James Brown', avatar: 'https://api.dicebear.com/7.x/avataaars/svg?seed=James', status: 'busy', currentActivity: 'Chemistry Lab', freePeriodsToday: [4, 5], nextFreeTime: '2:00 PM', phone: '+1 (555) 222-3333', email: 'james.b@campus.edu' },
+  { id: '3', name: 'Sophie Chen', avatar: 'https://api.dicebear.com/7.x/avataaars/svg?seed=Sophie', status: 'free', currentActivity: 'Cafeteria', freePeriodsToday: [1, 3, 5], nextFreeTime: 'Now', phone: '+1 (555) 333-4444', email: 'sophie.c@campus.edu' },
+  { id: '4', name: 'Michael Lee', avatar: 'https://api.dicebear.com/7.x/avataaars/svg?seed=Michael', status: 'offline', freePeriodsToday: [2, 4], nextFreeTime: 'Tomorrow', phone: '+1 (555) 444-5555', email: 'michael.l@campus.edu' },
+  { id: '5', name: 'Olivia Taylor', avatar: 'https://api.dicebear.com/7.x/avataaars/svg?seed=Olivia', status: 'busy', currentActivity: 'Math Class', freePeriodsToday: [5], nextFreeTime: '3:00 PM', phone: '+1 (555) 555-6666', email: 'olivia.t@campus.edu' },
+  { id: '6', name: 'Daniel Kim', avatar: 'https://api.dicebear.com/7.x/avataaars/svg?seed=Daniel', status: 'free', currentActivity: 'Student Center', freePeriodsToday: [1, 2, 5], nextFreeTime: 'Now', phone: '+1 (555) 666-7777', email: 'daniel.k@campus.edu' },
 ];
 
 export const groups: Group[] = [
@@ -215,6 +247,21 @@ export const teachers: Teacher[] = [
   },
 ];
 
+// Mock enrolled students for teacher view
+export const enrolledStudents: EnrolledStudent[] = [
+  { id: '1', name: 'Alex Johnson', email: 'alex.j@campus.edu', phone: '+1 (555) 100-0001', avatar: 'https://api.dicebear.com/7.x/avataaars/svg?seed=Alex', timetable: studentTimetable },
+  { id: '2', name: 'Emma Wilson', email: 'emma.w@campus.edu', phone: '+1 (555) 111-2222', avatar: 'https://api.dicebear.com/7.x/avataaars/svg?seed=Emma', timetable: studentTimetable },
+  { id: '3', name: 'James Brown', email: 'james.b@campus.edu', phone: '+1 (555) 222-3333', avatar: 'https://api.dicebear.com/7.x/avataaars/svg?seed=James', timetable: studentTimetable },
+  { id: '4', name: 'Sophie Chen', email: 'sophie.c@campus.edu', phone: '+1 (555) 333-4444', avatar: 'https://api.dicebear.com/7.x/avataaars/svg?seed=Sophie', timetable: studentTimetable },
+];
+
+// Mock teacher classes with enrolled students
+export const teacherClasses: TeacherClass[] = [
+  { subject: 'Mathematics', day: 'Monday', period: 1, room: 'Room 101', students: [enrolledStudents[0], enrolledStudents[1]] },
+  { subject: 'Mathematics', day: 'Tuesday', period: 5, room: 'Room 101', students: [enrolledStudents[0], enrolledStudents[2]] },
+  { subject: 'Mathematics', day: 'Thursday', period: 2, room: 'Room 101', students: [enrolledStudents[1], enrolledStudents[3]] },
+];
+
 export const clubs: Club[] = [
   { id: '1', name: 'Tech Club', description: 'Explore the latest in technology, coding, and innovation.', memberCount: 156, avatar: 'https://api.dicebear.com/7.x/shapes/svg?seed=Tech', isFollowing: true, category: 'Technology' },
   { id: '2', name: 'Photography Society', description: 'Capture moments and learn professional photography skills.', memberCount: 89, avatar: 'https://api.dicebear.com/7.x/shapes/svg?seed=Photo', isFollowing: false, category: 'Arts' },
@@ -225,11 +272,76 @@ export const clubs: Club[] = [
 ];
 
 export const events: Event[] = [
-  { id: '1', clubId: '1', clubName: 'Tech Club', title: 'Hackathon 2024', description: '24-hour coding competition with amazing prizes!', date: new Date(Date.now() + 86400000 * 3), time: '9:00 AM', venue: 'Tech Auditorium', isFollowedClub: true },
-  { id: '2', clubId: '3', clubName: 'Debate Club', title: 'Inter-College Debate', description: 'Annual debate competition with teams from 10 colleges.', date: new Date(Date.now() + 86400000 * 5), time: '2:00 PM', venue: 'Main Hall', isFollowedClub: true },
-  { id: '3', clubId: '2', clubName: 'Photography Society', title: 'Photo Walk', description: 'Explore campus through your lens with expert guidance.', date: new Date(Date.now() + 86400000 * 7), time: '6:00 AM', venue: 'Campus Gate', isFollowedClub: false },
-  { id: '4', clubId: '6', clubName: 'Entrepreneurship Cell', title: 'Startup Pitch Day', description: 'Present your startup ideas to real investors!', date: new Date(Date.now() + 86400000 * 10), time: '10:00 AM', venue: 'Business School', isFollowedClub: true },
-  { id: '5', clubId: '4', clubName: 'Music Society', title: 'Annual Concert', description: 'A night of musical performances by student bands.', date: new Date(Date.now() + 86400000 * 14), time: '6:00 PM', venue: 'Open Air Theatre', isFollowedClub: false },
+  { 
+    id: '1', 
+    clubId: '1', 
+    clubName: 'Tech Club', 
+    title: 'Hackathon 2024', 
+    description: '24-hour coding competition with amazing prizes!', 
+    date: new Date(Date.now() + 86400000 * 3), 
+    time: '9:00 AM', 
+    venue: 'Tech Auditorium', 
+    isFollowedClub: true,
+    isRegistered: false,
+    registeredStudents: [
+      { id: '1', eventId: '1', studentId: '2', studentName: 'Emma Wilson', studentEmail: 'emma.w@campus.edu', studentAvatar: 'https://api.dicebear.com/7.x/avataaars/svg?seed=Emma', registeredAt: new Date(Date.now() - 86400000) },
+      { id: '2', eventId: '1', studentId: '3', studentName: 'James Brown', studentEmail: 'james.b@campus.edu', studentAvatar: 'https://api.dicebear.com/7.x/avataaars/svg?seed=James', registeredAt: new Date(Date.now() - 72000000) },
+    ]
+  },
+  { 
+    id: '2', 
+    clubId: '3', 
+    clubName: 'Debate Club', 
+    title: 'Inter-College Debate', 
+    description: 'Annual debate competition with teams from 10 colleges.', 
+    date: new Date(Date.now() + 86400000 * 5), 
+    time: '2:00 PM', 
+    venue: 'Main Hall', 
+    isFollowedClub: true,
+    isRegistered: true,
+    registeredStudents: [
+      { id: '3', eventId: '2', studentId: '1', studentName: 'Alex Johnson', studentEmail: 'alex.j@campus.edu', studentAvatar: 'https://api.dicebear.com/7.x/avataaars/svg?seed=Alex', registeredAt: new Date(Date.now() - 48000000) },
+    ]
+  },
+  { 
+    id: '3', 
+    clubId: '2', 
+    clubName: 'Photography Society', 
+    title: 'Photo Walk', 
+    description: 'Explore campus through your lens with expert guidance.', 
+    date: new Date(Date.now() + 86400000 * 7), 
+    time: '6:00 AM', 
+    venue: 'Campus Gate', 
+    isFollowedClub: false,
+    isRegistered: false,
+    registeredStudents: []
+  },
+  { 
+    id: '4', 
+    clubId: '6', 
+    clubName: 'Entrepreneurship Cell', 
+    title: 'Startup Pitch Day', 
+    description: 'Present your startup ideas to real investors!', 
+    date: new Date(Date.now() + 86400000 * 10), 
+    time: '10:00 AM', 
+    venue: 'Business School', 
+    isFollowedClub: true,
+    isRegistered: false,
+    registeredStudents: []
+  },
+  { 
+    id: '5', 
+    clubId: '4', 
+    clubName: 'Music Society', 
+    title: 'Annual Concert', 
+    description: 'A night of musical performances by student bands.', 
+    date: new Date(Date.now() + 86400000 * 14), 
+    time: '6:00 PM', 
+    venue: 'Open Air Theatre', 
+    isFollowedClub: false,
+    isRegistered: false,
+    registeredStudents: []
+  },
 ];
 
 export const adminUsers: AdminUser[] = [
