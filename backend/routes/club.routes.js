@@ -102,4 +102,29 @@ router.delete('/events/:eventId', authenticate, isClub, mongoIdValidation('event
  */
 router.get('/followers', authenticate, isClub, clubController.getFollowers);
 
+/**
+ * @route   GET /api/club/events/:eventId/registrations
+ * @desc    Get registered students for an event
+ * @access  Private (Club)
+ */
+router.get('/events/:eventId/registrations', authenticate, isClub, mongoIdValidation('eventId'), clubController.getEventRegistrations);
+
+// =============================================================================
+// STUDENT EVENT REGISTRATION ROUTES
+// =============================================================================
+
+/**
+ * @route   POST /api/club/events/:eventId/register
+ * @desc    Register for an event
+ * @access  Private (Student)
+ */
+router.post('/events/:eventId/register', authenticate, isStudent, mongoIdValidation('eventId'), clubController.registerForEvent);
+
+/**
+ * @route   DELETE /api/club/events/:eventId/register
+ * @desc    Unregister from an event
+ * @access  Private (Student)
+ */
+router.delete('/events/:eventId/register', authenticate, isStudent, mongoIdValidation('eventId'), clubController.unregisterFromEvent);
+
 module.exports = router;
