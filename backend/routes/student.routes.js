@@ -111,6 +111,13 @@ router.post('/groups', createGroupValidation, studentController.createGroup);
 router.post('/groups/:groupId/members', mongoIdValidation('groupId'), studentController.addGroupMember);
 
 /**
+ * @route   DELETE /api/student/groups/:groupId/members/:userId
+ * @desc    Remove a member from a group
+ * @access  Private (Student, group member)
+ */
+router.delete('/groups/:groupId/members/:userId', mongoIdValidation('groupId'), studentController.removeGroupMember);
+
+/**
  * @route   GET /api/student/groups/:groupId/messages
  * @desc    Get messages for a group
  * @access  Private (Student, group member)
@@ -123,5 +130,12 @@ router.get('/groups/:groupId/messages', mongoIdValidation('groupId'), studentCon
  * @access  Private (Student, group member)
  */
 router.post('/groups/:groupId/messages', mongoIdValidation('groupId'), messageValidation, studentController.sendGroupMessage);
+
+/**
+ * @route   PUT /api/student/profile
+ * @desc    Update student profile (contact details)
+ * @access  Private (Student)
+ */
+router.put('/profile', studentController.updateProfile);
 
 module.exports = router;
