@@ -77,4 +77,18 @@ router.get('/office-hours', authenticate, isTeacher, teacherController.getOffice
  */
 router.post('/office-hours', authenticate, isTeacher, teacherController.updateOfficeHours);
 
+/**
+ * @route   GET /api/teacher/students
+ * @desc    Get enrolled students grouped by class
+ * @access  Private (Teacher)
+ */
+router.get('/students', authenticate, isTeacher, teacherController.getEnrolledStudents);
+
+/**
+ * @route   GET /api/teacher/students/:studentId
+ * @desc    Get a specific student's details
+ * @access  Private (Teacher)
+ */
+router.get('/students/:studentId', authenticate, isTeacher, mongoIdValidation('studentId'), teacherController.getStudentDetails);
+
 module.exports = router;
