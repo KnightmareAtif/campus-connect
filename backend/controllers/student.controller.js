@@ -453,6 +453,56 @@ const sendGroupMessage = async (req, res) => {
   }
 };
 
+/**
+ * Remove member from group
+ * DELETE /api/student/groups/:groupId/members/:userId
+ */
+const removeGroupMember = async (req, res) => {
+  try {
+    const { groupId, userId } = req.params;
+    
+    const group = await Group.findById(groupId);
+    
+    if (!group) {
+      return res.status(404).json({ error: 'Group not found' });
+    }
+    
+    if (!group.isMember(req.userId)) {
+      return res.status(403).json({ error: 'Only group members can remove others' });
+    }
+    
+    group.members = group.members.filter(m => m.toString() !== userId);
+    await group.save();
+    await group.populate('members', 'name email avatar');
+    
+    res.json({ message: 'Member removed', group });
+  } catch (error) {
+    console.error('Remove group member error:', error);
+    res.status(500).json({ error: 'Failed to remove member' });
+  }
+};
+
+/**
+ * Update student profile (contact details)
+ * PUT /api/student/profile
+ */
+const updateProfile = async (req, res) => {
+  try {
+    const { phone, contactEmail } = req.body;
+    
+    const user = await User.findByIdAndUpdate(
+      req.userId,
+      { phone, contactEmail },
+      { new: true, runValidators: true }
+    );
+    
+    res.json({ message: 'Profile updated', user: user.toPublicJSON() });
+  } catch (error) {
+    console.error('Update profile error:', error);
+    res.status(500).json({ error: 'Failed to update profile' });
+  }
+};
+
 module.exports = {
   getTimetable,
   updateTimetable,
@@ -465,6 +515,8 @@ module.exports = {
   getGroups,
   createGroup,
   addGroupMember,
+  removeGroupMember,
   getGroupMessages,
-  sendGroupMessage
+  sendGroupMessage,
+  updateProfile
 };
