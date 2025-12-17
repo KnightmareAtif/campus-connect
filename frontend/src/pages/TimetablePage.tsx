@@ -5,11 +5,13 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { useToast } from '@/hooks/use-toast';
-import { studentTimetable, TimeSlot } from '@/data/mockData';
+import { studentTimetable, TimeSlot, teachers } from '@/data/mockData';
 import { cn } from '@/lib/utils';
 import { motion } from 'framer-motion';
-import { Save, Edit3, X, Settings, Plus, Minus, Clock } from 'lucide-react';
+import { Save, Edit3, X, Settings, Plus, Minus, Clock, User } from 'lucide-react';
+import { useCurrentTime } from '@/hooks/useCurrentTime';
 
 const days = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday'] as const;
 
@@ -42,8 +44,10 @@ const TimetablePage = () => {
   const [editingSlot, setEditingSlot] = useState<string | null>(null);
   const [editSubject, setEditSubject] = useState('');
   const [editVenue, setEditVenue] = useState('');
+  const [editTeacher, setEditTeacher] = useState('');
   const [isSettingsOpen, setIsSettingsOpen] = useState(false);
   const { toast } = useToast();
+  const { currentDay, isTimeInRange } = useCurrentTime();
 
   // Generate timetable slots when period count changes
   useEffect(() => {
@@ -93,29 +97,44 @@ const TimetablePage = () => {
     return timetable.find(slot => slot.day === day && slot.period === period);
   };
 
+  const isCurrentPeriod = (day: string, periodIndex: number) => {
+    if (day !== currentDay) return false;
+    const time = periodTimes[periodIndex];
+    if (!time) return false;
+    return isTimeInRange(time.start, time.end);
+  };
+
   const handleEditSlot = (slot: TimeSlot) => {
     setEditingSlot(slot.id);
     setEditSubject(slot.subject || '');
     setEditVenue(slot.room || '');
+    setEditTeacher(slot.teacher || '');
   };
 
   const handleSaveSlot = (slotId: string) => {
     setTimetable(prev =>
       prev.map(slot =>
         slot.id === slotId
-          ? { ...slot, subject: editSubject || null, room: editVenue || undefined }
+          ? { 
+              ...slot, 
+              subject: editSubject || null, 
+              room: editVenue || undefined,
+              teacher: editTeacher || undefined
+            }
           : slot
       )
     );
     setEditingSlot(null);
     setEditSubject('');
     setEditVenue('');
+    setEditTeacher('');
   };
 
   const handleCancelEdit = () => {
     setEditingSlot(null);
     setEditSubject('');
     setEditVenue('');
+    setEditTeacher('');
   };
 
   const handleSaveTimetable = () => {
@@ -335,7 +354,8 @@ const TimetablePage = () => {
                                 ) : (
                                   <>
                                     <p className="font-medium text-foreground">{slot?.subject}</p>
-                                    {slot?.room && <p className="mt-1 text-xs text-muted-foreground">{slot.room}</p>}
+                                    {slot?.teacher && <p className="mt-0.5 text-xs flex items-center gap-1"><User className="h-3 w-3" />{slot.teacher}</p>}
+                                    {slot?.room && <p className="text-xs text-muted-foreground">{slot.room}</p>}
                                   </>
                                 )}
                               </div>
