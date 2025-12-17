@@ -3,16 +3,19 @@ import { DashboardLayout } from '@/components/layouts/DashboardLayout';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { StatusBadge } from '@/components/ui/StatusBadge';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from '@/components/ui/dialog';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { friends, Friend, periodTimes } from '@/data/mockData';
 import { motion } from 'framer-motion';
-import { Search, UserPlus, Check, X, Clock, Calendar } from 'lucide-react';
+import { Search, UserPlus, Check, X, Clock, Calendar, Mail, Phone, Edit, Save } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
+import { useAuth } from '@/contexts/AuthContext';
 
 const FriendsPage = () => {
+  const { user } = useAuth();
   const [friendsList, setFriendsList] = useState<Friend[]>(friends);
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedFriend, setSelectedFriend] = useState<Friend | null>(null);
@@ -20,6 +23,12 @@ const FriendsPage = () => {
     { id: 'p1', name: 'Sarah Connor', avatar: 'https://api.dicebear.com/7.x/avataaars/svg?seed=Sarah' },
     { id: 'p2', name: 'John Smith', avatar: 'https://api.dicebear.com/7.x/avataaars/svg?seed=John' },
   ]);
+  
+  // User's own contact details
+  const [isEditingContact, setIsEditingContact] = useState(false);
+  const [myPhone, setMyPhone] = useState('+1 (555) 100-0001');
+  const [myEmail, setMyEmail] = useState(user?.email || 'alex.j@campus.edu');
+  
   const { toast } = useToast();
 
   const filteredFriends = friendsList.filter(friend =>
@@ -41,6 +50,14 @@ const FriendsPage = () => {
     toast({
       title: 'Request declined',
     });
+  };
+
+  const handleSaveContact = () => {
+    toast({
+      title: 'Contact Details Updated',
+      description: 'Your contact information has been saved.',
+    });
+    setIsEditingContact(false);
   };
 
   const FriendCard = ({ friend }: { friend: Friend }) => (
@@ -113,6 +130,7 @@ const FriendsPage = () => {
             <TabsTrigger value="all">All ({friendsList.length})</TabsTrigger>
             <TabsTrigger value="free">Free ({freeFriends.length})</TabsTrigger>
             <TabsTrigger value="requests">Requests ({pendingRequests.length})</TabsTrigger>
+            <TabsTrigger value="my-contact">My Contact</TabsTrigger>
           </TabsList>
 
           <TabsContent value="all" className="space-y-4">
@@ -206,6 +224,80 @@ const FriendsPage = () => {
               ))}
             </div>
           </TabsContent>
+
+          {/* My Contact Details Tab */}
+          <TabsContent value="my-contact">
+            <Card>
+              <CardHeader className="flex flex-row items-center justify-between">
+                <CardTitle className="flex items-center gap-3">
+                  <Avatar className="h-12 w-12 border-2 border-border">
+                    <AvatarImage src={user?.avatar} alt={user?.name} />
+                    <AvatarFallback>{user?.name?.charAt(0)}</AvatarFallback>
+                  </Avatar>
+                  <div>
+                    <span className="font-display text-xl">{user?.name}</span>
+                    <p className="text-sm font-normal text-muted-foreground">Your contact details</p>
+                  </div>
+                </CardTitle>
+                <Button
+                  variant={isEditingContact ? 'default' : 'outline'}
+                  onClick={() => isEditingContact ? handleSaveContact() : setIsEditingContact(true)}
+                >
+                  {isEditingContact ? (
+                    <>
+                      <Save className="mr-2 h-4 w-4" />
+                      Save
+                    </>
+                  ) : (
+                    <>
+                      <Edit className="mr-2 h-4 w-4" />
+                      Edit
+                    </>
+                  )}
+                </Button>
+              </CardHeader>
+              <CardContent className="space-y-4">
+                <p className="text-sm text-muted-foreground">
+                  These details are only visible to your friends and teachers.
+                </p>
+                <div className="grid gap-4 sm:grid-cols-2">
+                  <div className="space-y-2">
+                    <Label htmlFor="my-phone">Phone Number</Label>
+                    {isEditingContact ? (
+                      <Input
+                        id="my-phone"
+                        value={myPhone}
+                        onChange={(e) => setMyPhone(e.target.value)}
+                        placeholder="+1 (555) 123-4567"
+                      />
+                    ) : (
+                      <div className="flex items-center gap-2 rounded-lg bg-muted p-3">
+                        <Phone className="h-4 w-4 text-muted-foreground" />
+                        <span className="text-sm">{myPhone || 'Not set'}</span>
+                      </div>
+                    )}
+                  </div>
+                  <div className="space-y-2">
+                    <Label htmlFor="my-email">Contact Email</Label>
+                    {isEditingContact ? (
+                      <Input
+                        id="my-email"
+                        type="email"
+                        value={myEmail}
+                        onChange={(e) => setMyEmail(e.target.value)}
+                        placeholder="your.email@campus.edu"
+                      />
+                    ) : (
+                      <div className="flex items-center gap-2 rounded-lg bg-muted p-3">
+                        <Mail className="h-4 w-4 text-muted-foreground" />
+                        <span className="text-sm">{myEmail || 'Not set'}</span>
+                      </div>
+                    )}
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+          </TabsContent>
         </Tabs>
 
         {/* Friend Details Dialog */}
@@ -231,6 +323,32 @@ const FriendsPage = () => {
                 <div className="rounded-lg bg-muted p-3">
                   <p className="text-sm text-muted-foreground">Currently at</p>
                   <p className="font-medium text-foreground">{selectedFriend.currentActivity}</p>
+                </div>
+              )}
+
+              {/* Contact Details - Visible to friends */}
+              {(selectedFriend?.phone || selectedFriend?.email) && (
+                <div className="grid gap-3 sm:grid-cols-2">
+                  {selectedFriend?.email && (
+                    <div className="flex items-center gap-3 rounded-lg bg-muted p-3">
+                      <Mail className="h-5 w-5 text-muted-foreground" />
+                      <div>
+                        <p className="text-xs text-muted-foreground">Email</p>
+                        <a href={`mailto:${selectedFriend.email}`} className="text-sm font-medium text-primary hover:underline">
+                          {selectedFriend.email}
+                        </a>
+                      </div>
+                    </div>
+                  )}
+                  {selectedFriend?.phone && (
+                    <div className="flex items-center gap-3 rounded-lg bg-muted p-3">
+                      <Phone className="h-5 w-5 text-muted-foreground" />
+                      <div>
+                        <p className="text-xs text-muted-foreground">Phone</p>
+                        <p className="text-sm font-medium">{selectedFriend.phone}</p>
+                      </div>
+                    </div>
+                  )}
                 </div>
               )}
 
